@@ -26,29 +26,7 @@ def load_raw_data(spark: SparkSession, paths: list[str]) -> DataFrame:
     """
     Read one or more raw turbine CSVs and return them unioned into a
     single DataFrame with a normalised schema.
-
-    Parameters
-    ----------
-    spark : SparkSession
-    paths : list[str]
-        Paths to the raw CSV files (e.g. data/raw/data_group_*.csv)
-
-    Returns
-    -------
-    DataFrame
-        Columns: timestamp (timestamp), turbine_id (int),
-        wind_speed (double), wind_direction (int), power_output (double)
     """
     df = spark.read.csv(paths, header=True, schema=SCHEMA)
     df = df.withColumn("timestamp", F.to_timestamp("timestamp", "yyyy-MM-dd HH:mm:ss"))
-    return dffrom pyspark.sql import functions as F
-
-df = df.withColumn(
-    "power_output",
-    F.when(F.col("power_output") < 0, None).otherwise(F.col("power_output"))
-)
-def clean_data(df: DataFrame) -> DataFrame:
-    df = df.withColumn("power_output", F.when(F.col("power_output") < 0, None).otherwise(F.col("power_output")))
-    df = df.withColumn("wind_speed", ...)
-    df = df.withColumn("wind_direction", ...)
-    return df    return df
+    return df
