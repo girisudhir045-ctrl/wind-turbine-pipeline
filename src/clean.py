@@ -1,7 +1,7 @@
 """
 Cleaning layer: handles missing values, missing rows, and outliers.
 """
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import DataFrame, SparkSession, Window
 from pyspark.sql import functions as F
 
 
@@ -53,3 +53,16 @@ def fill_missing_timestamps(spark: SparkSession, df: DataFrame) -> DataFrame:
 
     full_df = expected_grid.join(df, on=["timestamp", "turbine_id"], how="left")
     return full_df
+
+
+def impute_missing_values(df: DataFrame) -> DataFrame:
+    """
+    Forward-fill missing values per turbine, ordered by time.
+    """
+    window = Window.partitionBy("turbine_id").orderBy("timestamp")
+
+    df = df.withColumn("wind_speed", F.last("wind_speed", ignorenulls=True).over(window))
+    df = df.withColumn("wind_direction", F.last("wind_direction", ignorenulls=True).over(window))
+    df = df.withColumn("power_output", F.last("power_output", ignorenulls=True).over(window))
+
+    return df
