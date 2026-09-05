@@ -8,6 +8,11 @@ turbines whose output deviates significantly from their peers, and persists
 the results to a local SQLite database.
 
 ## Architecture
+1. **`ingest.py`** — loads raw CSVs into a schema-normalised Spark DataFrame
+2. **`clean.py`** — filters hard-bound outliers, fills missing hours, imputes missing values
+3. **`stats.py`** — computes per-turbine daily min/max/avg power
+4. **`anomalies.py`** — flags turbines >2 stddev from peer average (same day)
+5. **`storage.py`** — persists cleaned readings, stats, and anomalies to SQLite
 
 `pipeline.py` orchestrates the above; each module is independently testable
 with no business logic living in the orchestrator itself.
