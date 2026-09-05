@@ -41,4 +41,14 @@ def load_raw_data(spark: SparkSession, paths: list[str]) -> DataFrame:
     """
     df = spark.read.csv(paths, header=True, schema=SCHEMA)
     df = df.withColumn("timestamp", F.to_timestamp("timestamp", "yyyy-MM-dd HH:mm:ss"))
-    return df
+    return dffrom pyspark.sql import functions as F
+
+df = df.withColumn(
+    "power_output",
+    F.when(F.col("power_output") < 0, None).otherwise(F.col("power_output"))
+)
+def clean_data(df: DataFrame) -> DataFrame:
+    df = df.withColumn("power_output", F.when(F.col("power_output") < 0, None).otherwise(F.col("power_output")))
+    df = df.withColumn("wind_speed", ...)
+    df = df.withColumn("wind_direction", ...)
+    return df    return df
