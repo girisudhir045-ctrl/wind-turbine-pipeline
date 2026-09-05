@@ -7,7 +7,25 @@ cleans the data, computes daily summary statistics per turbine, flags
 turbines whose output deviates significantly from their peers, and persists
 the results to a local SQLite database.
 
-## Architecture`pipeline.py` orchestrates the above; each module is independently testable
+## Architecturedata/raw/*.csv
+|
+v
+ingest.py -> loads raw CSVs into a schema-normalised Spark DataFrame
+|
+v
+clean.py -> filters hard-bound outliers, fills missing hours,
+imputes missing values
+|
+v
+stats.py -> computes per-turbine daily min / max / avg power
+|
+v
+anomalies.py -> flags turbines >2 stddev from peer average (same day)
+|
+v
+storage.py -> persists cleaned readings, stats, and anomalies to
+SQLite (data/warehouse.db)
+`pipeline.py` orchestrates the above; each module is independently testable
 with no business logic living in the orchestrator itself.
 
 ## Assumptions
