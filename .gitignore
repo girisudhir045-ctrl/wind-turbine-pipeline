@@ -1,0 +1,4 @@
+data/warehouse.db
+venv/
+__pycache__/
+output.log
