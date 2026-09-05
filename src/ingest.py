@@ -8,15 +8,18 @@ Expected raw schema (per CSV):
     wind_speed       double   (m/s)
     wind_direction   int      (degrees, 0-359)
     power_output     double   (MW)
-
-TODO (you): decide + implement
-    - explicit schema definition (don't let Spark infer it - it's slow
-      and can silently guess wrong types on messy data)
-    - timestamp parsing to a proper TimestampType
-    - a `source_file` or `ingested_at` column if you want lineage/audit
-      info (nice to mention in the design doc even if you skip it)
 """
 from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
+
+SCHEMA = StructType([
+    StructField("timestamp", StringType(), True),
+    StructField("turbine_id", IntegerType(), True),
+    StructField("wind_speed", DoubleType(), True),
+    StructField("wind_direction", IntegerType(), True),
+    StructField("power_output", DoubleType(), True),
+])
 
 
 def load_raw_data(spark: SparkSession, paths: list[str]) -> DataFrame:
@@ -36,4 +39,6 @@ def load_raw_data(spark: SparkSession, paths: list[str]) -> DataFrame:
         Columns: timestamp (timestamp), turbine_id (int),
         wind_speed (double), wind_direction (int), power_output (double)
     """
-    raise NotImplementedError
+    df = spark.read.csv(paths, header=True, schema=SCHEMA)
+    df = df.withColumn("timestamp", F.to_timestamp("timestamp", "yyyy-MM-dd HH:mm:ss"))
+    return df
