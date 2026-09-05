@@ -1,21 +1,6 @@
-"""
-Shared pytest fixtures.
-
-`spark` - a local SparkSession scoped to the whole test session (Spark
-sessions are expensive to start, don't create one per test).
-
-`dirty_readings_df` - a SMALL, hand-crafted DataFrame with deliberate
-problems baked in, so your clean/stats/anomaly tests have something to
-actually catch. Don't test against the full month of real CSV data -
-it's clean, so your outlier/anomaly logic would never be exercised.
-
-Fill in the TODOs with rows that match what YOU decided counts as
-dirty (see clean.py / anomalies.py docstrings for the categories to
-cover: missing values, missing rows/timestamps, hard-bound outliers,
-statistical outliers, and at least one genuine cross-turbine anomaly).
-"""
 import pytest
 from src.spark_session import get_spark
+from src.ingest import load_raw_data
 
 
 @pytest.fixture(scope="session")
@@ -26,14 +11,13 @@ def spark():
 
 
 @pytest.fixture
-def dirty_readings_df(spark):
-    """
-    TODO (you): build this with spark.createDataFrame(...) using a
-    small explicit schema and ~10-20 rows covering:
-      - a null wind_speed or power_output value
-      - a missing hour for a turbine (i.e. just don't include that row)
-      - a negative or impossible power_output (hard-bound outlier)
-      - one turbine whose readings are consistently far from its
-        peers in the same window (for anomaly detection to catch)
-    """
-    raise NotImplementedError
+def dirty_readings_df(spark, tmp_path):
+    csv_content = (
+        "timestamp,turbine_id,wind_speed,wind_direction,power_output\n"
+        "2022-03-01 00:00:00,1,10.0,180,3.0\n"
+        "2022-03-01 01:00:00,1,11.0,190,-5.0\n"
+        "2022-03-01 00:00:00,2,,170,2.5\n"
+    )
+    csv_path = tmp_path / "dirty.csv"
+    csv_path.write_text(csv_content)
+    return load_raw_data(spark, [str(csv_path)])
