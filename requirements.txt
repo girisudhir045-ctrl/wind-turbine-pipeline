@@ -1,8 +1,5 @@
 pyspark==3.5.1
 pytest==8.2.0
 sqlalchemy==2.0.30
-pyspark==3.5.1
-pytest==8.2.0
-sqlalchemy==2.0.30
 pandas
 setuptools
